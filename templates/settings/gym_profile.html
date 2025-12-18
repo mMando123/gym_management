@@ -1,0 +1,235 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}إعدادات الجيم - GymPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3 mb-4">
+            <div class="list-group">
+                <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                    <i class="fas fa-gym ms-2"></i>بيانات الجيم
+                </a>
+                <a href="#plans" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-list ms-2"></i>خطط الاشتراك
+                </a>
+                <a href="#hours" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-clock ms-2"></i>ساعات العمل
+                </a>
+                <a href="#users" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-users ms-2"></i>المستخدمين
+                </a>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="col-md-9">
+            <!-- Gym Profile Settings -->
+            <div id="profile" class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">بيانات الجيم</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">اسم الجيم *</label>
+                                <input type="text" class="form-control" value="نادي القوة الرياضي" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">رقم الهاتف</label>
+                                <input type="tel" class="form-control" value="+966501234567">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">البريد الإلكتروني</label>
+                                <input type="email" class="form-control" value="info@gym.sa">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">الموقع على الخريطة</label>
+                                <input type="text" class="form-control" value="الرياض - السلام">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">الوصف</label>
+                                <textarea class="form-control" rows="4">جيم حديث مجهز بأحدث المعدات والأجهزة الرياضية</textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">الشعار</label>
+                                <div class="upload-area" id="logoUpload">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 2rem;"></i>
+                                    <p class="mt-2 mb-0">اسحب الصورة هنا</p>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save ms-2"></i>حفظ التغييرات
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Plans Settings -->
+            <div id="plans" class="card mb-4" style="display: none;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">خطط الاشتراك</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPlanModal">
+                        <i class="fas fa-plus ms-2"></i>إضافة خطة
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>اسم الخطة</th>
+                                    <th>المدة (أيام)</th>
+                                    <th>السعر</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>اشتراك شهري</td>
+                                    <td>30</td>
+                                    <td>200 ر.س</td>
+                                    <td><span class="badge bg-success">نشط</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">تعديل</button>
+                                        <button class="btn btn-sm btn-outline-danger">حذف</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>اشتراك ربع سنوي</td>
+                                    <td>90</td>
+                                    <td>500 ر.س</td>
+                                    <td><span class="badge bg-success">نشط</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">تعديل</button>
+                                        <button class="btn btn-sm btn-outline-danger">حذف</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>اشتراك سنوي</td>
+                                    <td>365</td>
+                                    <td>1,500 ر.س</td>
+                                    <td><span class="badge bg-success">نشط</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">تعديل</button>
+                                        <button class="btn btn-sm btn-outline-danger">حذف</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Working Hours Settings -->
+            <div id="hours" class="card mb-4" style="display: none;">
+                <div class="card-header">
+                    <h5 class="mb-0">ساعات العمل</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>اليوم</th>
+                                        <th>الافتتاح</th>
+                                        <th>الإغلاق</th>
+                                        <th>مغلق</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for day in days %}
+                                    <tr>
+                                        <td>{{ day.name }}</td>
+                                        <td>
+                                            <input type="time" class="form-control" value="06:00" {% if day.closed %}disabled{% endif %}>
+                                        </td>
+                                        <td>
+                                            <input type="time" class="form-control" value="23:00" {% if day.closed %}disabled{% endif %}>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input">
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="fas fa-save ms-2"></i>حفظ
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Plan Modal -->
+<div class="modal fade" id="addPlanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إضافة خطة جديدة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">اسم الخطة *</label>
+                        <input type="text" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">المدة (بالأيام) *</label>
+                        <input type="number" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">السعر (ريال) *</label>
+                        <input type="number" class="form-control" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('[data-bs-toggle="list"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = this.getAttribute('href');
+        document.querySelectorAll('[id]').forEach(el => {
+            if (el.id.startsWith('profile') || el.id.startsWith('plans') || 
+                el.id.startsWith('hours') || el.id.startsWith('users')) {
+                el.style.display = 'none';
+            }
+        });
+        document.querySelector(target).style.display = 'block';
+        
+        document.querySelectorAll('.list-group-item').forEach(item => item.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+</script>
+{% endblock %}

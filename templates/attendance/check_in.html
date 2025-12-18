@@ -1,0 +1,212 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}تسجيل الحضور - GymPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Title -->
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">
+                    <i class="fas fa-clipboard-check text-success ms-2"></i>
+                    تسجيل الحضور
+                </h2>
+                <p class="text-muted">ابحث عن العضو لتسجيل الحضور</p>
+            </div>
+
+            <!-- Search Card -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light border-0">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control form-control-lg border-0" 
+                               id="searchInput" placeholder="ابحث برقم العضوية أو الهاتف..."
+                               autofocus>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div id="searchResults" class="mb-4"></div>
+
+            <!-- Quick Buttons -->
+            <div class="card mb-4 d-none" id="memberCard">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <img id="memberImage" src="" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-1" id="memberName">--</h5>
+                            <small class="text-muted d-block" id="memberPhone">--</small>
+                            <small class="d-block" id="memberStatus">
+                                <span class="badge status-active">اشتراك نشط</span>
+                            </small>
+                            <small class="text-muted d-block mt-1" id="memberExpiry">--</small>
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-success btn-lg" id="checkInBtn" onclick="handleCheckIn()">
+                                <i class="fas fa-sign-in-alt ms-2"></i>دخول
+                            </button>
+                            <button type="button" class="btn btn-warning btn-lg ms-2" id="checkOutBtn" onclick="handleCheckOut()">
+                                <i class="fas fa-sign-out-alt ms-2"></i>خروج
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Attendance -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history ms-2"></i>
+                        سجل الحضور لليوم
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="attendanceTable">
+                            <thead>
+                                <tr>
+                                    <th>الوقت</th>
+                                    <th>العضو</th>
+                                    <th>النوع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in today_attendance %}
+                                <tr>
+                                    <td>{{ record.check_in_time|time:"H:i" }}</td>
+                                    <td>{{ record.member.full_name }}</td>
+                                    <td>
+                                        {% if record.check_out_time %}
+                                            <span class="badge bg-success">دخول وخروج</span>
+                                        {% else %}
+                                            <span class="badge bg-info">دخول فقط</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+const memberCard = document.getElementById('memberCard');
+let selectedMemberId = null;
+
+searchInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    if (query.length < 2) {
+        searchResults.innerHTML = '';
+        memberCard.classList.add('d-none');
+        return;
+    }
+
+    // Simulate API search
+    ajaxRequest(`/api/members/search/?q=${query}`)
+        .then(data => {
+            displaySearchResults(data);
+        })
+        .catch(error => console.error('Search error:', error));
+});
+
+function displaySearchResults(data) {
+    if (!data || data.length === 0) {
+        searchResults.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-circle ms-2"></i>
+                لم يتم العثور على أعضاء
+            </div>
+        `;
+        memberCard.classList.add('d-none');
+        return;
+    }
+
+    const results = data.map(member => `
+        <div class="list-group-item list-group-item-action" onclick="selectMember(${member.id})">
+            <div class="d-flex w-100 align-items-center">
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${member.full_name}</h6>
+                    <small class="text-muted">${member.phone}</small>
+                </div>
+                <span class="badge ${member.active_subscription ? 'bg-success' : 'bg-danger'}">
+                    ${member.active_subscription ? 'نشط' : 'غير نشط'}
+                </span>
+            </div>
+        </div>
+    `).join('');
+
+    searchResults.innerHTML = `<div class="list-group">${results}</div>`;
+}
+
+function selectMember(memberId) {
+    selectedMemberId = memberId;
+    
+    // Fetch member details
+    ajaxRequest(`/api/members/${memberId}/`)
+        .then(member => {
+            displayMemberCard(member);
+            searchResults.innerHTML = '';
+            searchInput.value = '';
+        });
+}
+
+function displayMemberCard(member) {
+    document.getElementById('memberImage').src = member.image || '/static/img/default-avatar.png';
+    document.getElementById('memberName').textContent = member.full_name;
+    document.getElementById('memberPhone').textContent = member.phone;
+    
+    if (member.active_subscription) {
+        document.getElementById('memberStatus').innerHTML = `
+            <span class="badge status-active">اشتراك نشط</span>
+            <span class="badge bg-info ms-2">${member.active_subscription.plan.name}</span>
+        `;
+        document.getElementById('memberExpiry').textContent = `ينتهي: ${member.active_subscription.end_date}`;
+    } else {
+        document.getElementById('memberStatus').innerHTML = `<span class="badge status-inactive">بدون اشتراك</span>`;
+        document.getElementById('memberExpiry').textContent = '';
+    }
+    
+    memberCard.classList.remove('d-none');
+}
+
+function handleCheckIn() {
+    if (!selectedMemberId) return;
+    
+    ajaxRequest(`/api/attendance/checkin/`, 'POST', { member_id: selectedMemberId })
+        .then(response => {
+            showSuccessMessage('تم تسجيل الدخول بنجاح');
+            selectedMemberId = null;
+            memberCard.classList.add('d-none');
+            location.reload();
+        })
+        .catch(error => showErrorMessage('خطأ في تسجيل الدخول'));
+}
+
+function handleCheckOut() {
+    if (!selectedMemberId) return;
+    
+    ajaxRequest(`/api/attendance/checkout/`, 'POST', { member_id: selectedMemberId })
+        .then(response => {
+            showSuccessMessage('تم تسجيل الخروج بنجاح');
+            selectedMemberId = null;
+            memberCard.classList.add('d-none');
+            location.reload();
+        })
+        .catch(error => showErrorMessage('خطأ في تسجيل الخروج'));
+}
+</script>
+{% endblock %}

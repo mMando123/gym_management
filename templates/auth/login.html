@@ -1,0 +1,112 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}تسجيل الدخول - GymPro{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .login-container {
+        width: 100%;
+        max-width: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="card shadow-lg rounded-lg">
+        <!-- Header -->
+        <div class="card-body p-5 text-center border-bottom">
+            <div class="mb-4">
+                <div class="bg-primary rounded-3 p-3 d-inline-flex" style="width: 60px; height: 60px; align-items: center; justify-content: center;">
+                    <i class="fas fa-dumbbell text-white" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-2">GymPro</h3>
+            <p class="text-muted">نظام إدارة صالات الجيم</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="card-body p-5">
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle ms-2"></i>
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <!-- Email Field -->
+                <div class="mb-4">
+                    <label class="form-label fw-500">البريد الإلكتروني أو اسم المستخدم</label>
+                    <input type="text" class="form-control form-control-lg" name="username" 
+                           placeholder="أدخل البريد الإلكتروني" required autofocus>
+                    {% if form.username.errors %}
+                    <small class="text-danger">{{ form.username.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Password Field -->
+                <div class="mb-4">
+                    <label class="form-label fw-500">كلمة المرور</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control form-control-lg" name="password" 
+                               id="passwordInput" placeholder="أدخل كلمة المرور" required>
+                        <button class="btn btn-outline-secondary" type="button" 
+                                onclick="togglePassword('passwordInput')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                    <small class="text-danger">{{ form.password.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Remember Me -->
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe" name="remember">
+                    <label class="form-check-label" for="rememberMe">
+                        تذكرني
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary btn-lg w-100 fw-500">
+                    <i class="fas fa-sign-in-alt ms-2"></i>تسجيل الدخول
+                </button>
+            </form>
+
+            <!-- Links -->
+            <div class="text-center mt-4">
+                <p class="text-muted mb-0">
+                    <a href="#" class="text-primary text-decoration-none">هل نسيت كلمة المرور؟</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="card-body p-3 bg-light text-center border-top">
+            <small class="text-muted">
+                © 2025 GymPro - جميع الحقوق محفوظة
+            </small>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}

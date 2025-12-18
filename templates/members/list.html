@@ -1,0 +1,213 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}قائمة الأعضاء{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <p class="mb-1">إجمالي الأعضاء</p>
+                    <h3 class="fw-bold">{{ total_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <p class="mb-1">الأعضاء النشطين</p>
+                    <h3 class="fw-bold">{{ active_count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label" for="search">البحث</label>
+                    <input type="text" id="search" name="search" class="form-control"
+                           placeholder="اسم، هاتف، بريد..." value="{{ search }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="gender">الجنس</label>
+                    <select name="gender" id="gender" class="form-select">
+                        <option value="">الكل</option>
+                        {% for value, label in form.fields.gender.choices %}
+                            <option value="{{ value }}" {% if form.data.gender == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="status">الحالة</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">الكل</option>
+                        {% for value, label in form.fields.status.choices %}
+                            <option value="{{ value }}" {% if status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 mt-3">
+                        <i class="fas fa-search me-1"></i>بحث
+                    </button>
+                </div>
+                <div class="col-md-10 text-end mt-3">
+                    <a href="{% url 'members:member_create' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>إضافة عضو جديد
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>العضو</th>
+                            <th>البريد</th>
+                            <th>الهاتف</th>
+                            <th>الاشتراك الحالي</th>
+                            <th>انتهى</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in members %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if member.photo %}
+                                        <img src="{{ member.photo.url }}" class="rounded-circle" width="35" height="35" alt="{{ member.full_name }}">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:35px;height:35px;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ member.full_name }}</strong>
+                                        <div class="text-muted small">{{ member.user.phone }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-nowrap">{{ member.user.email|default:"-" }}</td>
+                            <td class="text-nowrap">{{ member.user.phone }}</td>
+                            <td>
+                                {% if member.active_subscription %}
+                                    <span class="badge bg-success">{{ member.active_subscription.plan.name }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">بدون اشتراك</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if member.active_subscription %}
+                                    {{ member.active_subscription.end_date|date:"Y-m-d" }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if member.is_active %}
+                                    <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                    <span class="badge bg-danger">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'members:member_detail' member.pk %}" class="btn btn-sm btn-outline-info" title="عرض">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'members:member_edit' member.pk %}" class="btn btn-sm btn-outline-warning" title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('{{ member.pk }}', '{{ member.full_name }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <p class="mb-0 text-muted">لا يوجد أعضاء بعد.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&search={{ search }}&gender={{ form.data.gender }}&status={{ status }}">الأولى</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search }}&gender={{ form.data.gender }}&status={{ status }}">السابق</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} من {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search }}&gender={{ form.data.gender }}&status={{ status }}">التالي</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ search }}&gender={{ form.data.gender }}&status={{ status }}">الأخيرة</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function confirmDelete(pk, name) {
+    Swal.fire({
+        title: 'هل أنت متأكد؟',
+        text: `سيتم حذف العضو ${name}`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'حذف'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `{% url 'members:member_delete' 0 %}`.replace('/0/', `/${pk}/`);
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'csrfmiddlewaretoken';
+            input.value = csrfToken;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+</script>
+{% endblock %}
+
+{% endblock %}

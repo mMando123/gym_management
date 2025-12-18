@@ -1,0 +1,219 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}الاشتراكات - GymPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">إدارة الاشتراكات</h2>
+            <small class="text-muted">قائمة جميع الاشتراكات</small>
+        </div>
+        <a href="{% url 'subscriptions:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus ms-2"></i>إضافة اشتراك
+        </a>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all">
+                الكل
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="active-tab" data-bs-toggle="tab" data-bs-target="#active">
+                نشط <span class="badge bg-success ms-2">{{ active_count }}</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="expiring-tab" data-bs-toggle="tab" data-bs-target="#expiring">
+                ينتهي قريباً <span class="badge bg-warning ms-2">{{ expiring_count }}</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="expired-tab" data-bs-toggle="tab" data-bs-target="#expired">
+                منتهي <span class="badge bg-danger ms-2">{{ expired_count }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- All Subscriptions -->
+        <div class="tab-pane fade show active" id="all">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover data-table">
+                            <thead>
+                                <tr>
+                                    <th>العضو</th>
+                                    <th>الخطة</th>
+                                    <th>البدء</th>
+                                    <th>الانتهاء</th>
+                                    <th>المبلغ</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subscription in subscriptions %}
+                                <tr>
+                                    <td><strong>{{ subscription.member.full_name }}</strong></td>
+                                    <td>{{ subscription.plan.name }}</td>
+                                    <td>{{ subscription.start_date|date:"Y-m-d" }}</td>
+                                    <td>{{ subscription.end_date|date:"Y-m-d" }}</td>
+                                    <td>{{ subscription.amount }} ر.س</td>
+                                    <td>
+                                        {% if subscription.is_active %}
+                                            <span class="badge status-active">نشط</span>
+                                        {% elif subscription.days_remaining <= 7 and subscription.days_remaining > 0 %}
+                                            <span class="badge status-expiring">ينتهي قريباً</span>
+                                        {% else %}
+                                            <span class="badge status-inactive">منتهي</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'subscriptions:update' subscription.id %}" class="btn btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" 
+                                                    data-bs-target="#renewModal" data-id="{{ subscription.id }}">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        لا توجد اشتراكات
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Subscriptions -->
+        <div class="tab-pane fade" id="active">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover data-table">
+                            <thead>
+                                <tr>
+                                    <th>العضو</th>
+                                    <th>الخطة</th>
+                                    <th>البدء</th>
+                                    <th>الانتهاء</th>
+                                    <th>المبلغ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subscription in active_subscriptions %}
+                                <tr>
+                                    <td><strong>{{ subscription.member.full_name }}</strong></td>
+                                    <td>{{ subscription.plan.name }}</td>
+                                    <td>{{ subscription.start_date|date:"Y-m-d" }}</td>
+                                    <td>{{ subscription.end_date|date:"Y-m-d" }}</td>
+                                    <td>{{ subscription.amount }} ر.س</td>
+                                    <td>
+                                        <button type="button" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-redo ms-2"></i>تجديد
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expiring Subscriptions -->
+        <div class="tab-pane fade" id="expiring">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover data-table">
+                            <thead>
+                                <tr>
+                                    <th>العضو</th>
+                                    <th>الخطة</th>
+                                    <th>ينتهي في</th>
+                                    <th>أيام متبقية</th>
+                                    <th>المبلغ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subscription in expiring_subscriptions %}
+                                <tr>
+                                    <td><strong>{{ subscription.member.full_name }}</strong></td>
+                                    <td>{{ subscription.plan.name }}</td>
+                                    <td>{{ subscription.end_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ subscription.days_remaining }} يوم</span>
+                                    </td>
+                                    <td>{{ subscription.amount }} ر.س</td>
+                                    <td>
+                                        <button type="button" class="btn btn-outline-warning btn-sm">
+                                            <i class="fas fa-redo ms-2"></i>تجديد الآن
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expired Subscriptions -->
+        <div class="tab-pane fade" id="expired">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover data-table">
+                            <thead>
+                                <tr>
+                                    <th>العضو</th>
+                                    <th>الخطة</th>
+                                    <th>انتهى في</th>
+                                    <th>المبلغ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subscription in expired_subscriptions %}
+                                <tr>
+                                    <td><strong>{{ subscription.member.full_name }}</strong></td>
+                                    <td>{{ subscription.plan.name }}</td>
+                                    <td>{{ subscription.end_date|date:"Y-m-d" }}</td>
+                                    <td>{{ subscription.amount }} ر.س</td>
+                                    <td>
+                                        <a href="{% url 'subscriptions:create' %}" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-plus ms-2"></i>اشتراك جديد
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}بطاقة العضوية - GymPro{% endblock %}
+
+{% block extra_css %}
+<style>
+    @page {
+        size: 8.5cm 5.5cm;
+        margin: 0;
+    }
+    
+    .membership-card {
+        width: 8.5cm;
+        height: 5.5cm;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5cm;
+        border-radius: 8px;
+        font-family: 'Cairo', sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .membership-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.1) 10px,
+            rgba(255, 255, 255, 0.1) 20px
+        );
+        pointer-events: none;
+    }
+    
+    .card-header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10px;
+        margin-bottom: 0.3cm;
+    }
+    
+    .card-member-info {
+        display: flex;
+        gap: 0.3cm;
+        font-size: 9px;
+        margin-bottom: 0.2cm;
+    }
+    
+    .card-member-image {
+        width: 1.2cm;
+        height: 1.2cm;
+        border-radius: 4px;
+        object-fit: cover;
+        border: 2px solid white;
+    }
+    
+    .card-member-text {
+        flex-grow: 1;
+    }
+    
+    .member-name {
+        font-weight: bold;
+        font-size: 10px;
+    }
+    
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 8px;
+    }
+    
+    .qr-code {
+        width: 1cm;
+        height: 1cm;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">بطاقة العضوية</h2>
+            <p class="text-muted">{{ member.full_name }}</p>
+        </div>
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print ms-2"></i>طباعة
+        </button>
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <!-- Membership Card -->
+        <div class="membership-card">
+            <!-- Header with Logo and Gym Name -->
+            <div class="card-header-section">
+                <div>
+                    <div style="font-weight: bold; font-size: 11px;">🏋️ نادي القوة</div>
+                </div>
+            </div>
+
+            <!-- Member Information -->
+            <div class="card-member-info">
+                {% if member.image %}
+                    <img src="{{ member.image.url }}" class="card-member-image" alt="{{ member.full_name }}">
+                {% else %}
+                    <div class="card-member-image" style="background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user" style="font-size: 16px;"></i>
+                    </div>
+                {% endif %}
+                <div class="card-member-text">
+                    <div class="member-name">{{ member.full_name }}</div>
+                    <div>م: GYM-{{ member.id|stringformat:"05d" }}</div>
+                    {% if member.active_subscription %}
+                    <div>ينتهي: {{ member.active_subscription.end_date|date:"Y-m-d" }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Footer with QR Code -->
+            <div class="card-footer">
+                <div>
+                    <div style="font-size: 7px; opacity: 0.8;">صالح من</div>
+                    <div style="font-size: 8px;">{{ now|date:"Y-m-d" }}</div>
+                </div>
+                <div class="qr-code" id="qrCode">
+                    <!-- QR Code will be generated here -->
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=GYM-{{ member.id|stringformat:'05d' }}" 
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        window.print();
+    }, 500);
+});
+</script>
+{% endblock %}

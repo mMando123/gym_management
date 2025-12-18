@@ -1,0 +1,247 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.id %}تعديل الاشتراك{% else %}إضافة اشتراك جديد{% endif %} - GymPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            {% if form.instance.id %}
+                تعديل الاشتراك
+            {% else %}
+                إضافة اشتراك جديد
+            {% endif %}
+        </h2>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Member Selection -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">اختر العضو</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">العضو *</label>
+                            <select class="form-select" name="member" id="memberSelect" required>
+                                <option value="">-- اختر عضو --</option>
+                                {% for member in members %}
+                                    <option value="{{ member.id }}" {% if form.instance.member_id == member.id %}selected{% endif %}>
+                                        {{ member.full_name }} - {{ member.phone }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plan Selection -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">اختر الخطة</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3" id="plansContainer">
+                            {% for plan in plans %}
+                            <div class="col-md-6">
+                                <div class="card border-2 plan-card" style="cursor: pointer;">
+                                    <div class="card-body text-center">
+                                        <h6 class="mb-2">{{ plan.name }}</h6>
+                                        <div class="h4 text-primary mb-2">{{ plan.price }} ر.س</div>
+                                        <small class="text-muted">لمدة {{ plan.duration }} يوم</small>
+                                        <input type="radio" name="plan" value="{{ plan.id }}" 
+                                               data-duration="{{ plan.duration }}" 
+                                               data-price="{{ plan.price }}"
+                                               style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Details -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">تفاصيل الاشتراك</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">تاريخ البدء *</label>
+                                <input type="date" class="form-control date-picker" name="start_date" 
+                                       value="{{ form.instance.start_date|date:'Y-m-d'|default:'' }}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">تاريخ الانتهاء</label>
+                                <input type="date" class="form-control" id="endDate" name="end_date" readonly 
+                                       value="{{ form.instance.end_date|date:'Y-m-d'|default:'' }}">
+                                <small class="text-muted">يتم حسابه تلقائياً</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">المبلغ (ريال)</label>
+                                <input type="number" class="form-control" id="amount" name="amount" 
+                                       value="{{ form.instance.amount|default:'' }}" step="0.01" readonly>
+                                <small class="text-muted">من الخطة المختارة</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">الخصم (ريال)</label>
+                                <input type="number" class="form-control" name="discount" 
+                                       value="{{ form.instance.discount|default:'0' }}" step="0.01">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">المبلغ النهائي (ريال)</label>
+                                <input type="number" class="form-control" id="totalAmount" name="total_amount" 
+                                       value="{{ form.instance.total_amount|default:'' }}" step="0.01" readonly>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">طريقة الدفع *</label>
+                                <select class="form-select" name="payment_method" required>
+                                    <option value="">-- اختر --</option>
+                                    <option value="cash" {% if form.instance.payment_method == 'cash' %}selected{% endif %}>نقدي</option>
+                                    <option value="card" {% if form.instance.payment_method == 'card' %}selected{% endif %}>بطاقة ائتمان</option>
+                                    <option value="transfer" {% if form.instance.payment_method == 'transfer' %}selected{% endif %}>تحويل بنكي</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">ملاحظات</label>
+                                <textarea class="form-control" name="notes" rows="3">{{ form.instance.notes }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save ms-2"></i>
+                        {% if form.instance.id %}تحديث{% else %}إضافة{% endif %}
+                    </button>
+                    <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times ms-2"></i>إلغاء
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sidebar - Summary -->
+            <div class="col-lg-4">
+                <div class="card sticky-top">
+                    <div class="card-header">
+                        <h6 class="mb-0">ملخص الاشتراك</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <small class="text-muted">العضو</small>
+                            <p class="mb-0" id="summaryMember">--</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted">الخطة</small>
+                            <p class="mb-0" id="summaryPlan">--</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted">المدة</small>
+                            <p class="mb-0" id="summaryDuration">-- يوم</p>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">السعر الأساسي:</small>
+                                <span id="summaryPrice">0 ر.س</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">الخصم:</small>
+                                <span id="summaryDiscount">0 ر.س</span>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <strong>الإجمالي:</strong>
+                                <strong class="text-primary" id="summaryTotal">0 ر.س</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const planCards = document.querySelectorAll('.plan-card');
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    const endDateInput = document.getElementById('endDate');
+    const amountInput = document.getElementById('amount');
+    const discountInput = document.querySelector('input[name="discount"]');
+    const totalAmountInput = document.getElementById('totalAmount');
+
+    // Plan selection
+    planCards.forEach(card => {
+        card.addEventListener('click', function() {
+            planCards.forEach(c => c.classList.remove('border-primary'));
+            this.classList.add('border-primary');
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            updateAmounts();
+            updateEndDate();
+        });
+    });
+
+    // Update end date
+    function updateEndDate() {
+        const startDate = new Date(startDateInput.value);
+        const radio = document.querySelector('input[name="plan"]:checked');
+        if (startDate && radio) {
+            const duration = parseInt(radio.dataset.duration);
+            const endDate = new Date(startDate.getTime() + duration * 24 * 60 * 60 * 1000);
+            endDateInput.value = endDate.toISOString().split('T')[0];
+        }
+    }
+
+    // Update amounts
+    function updateAmounts() {
+        const radio = document.querySelector('input[name="plan"]:checked');
+        const discount = parseFloat(discountInput.value) || 0;
+        
+        if (radio) {
+            const price = parseFloat(radio.dataset.price);
+            const total = price - discount;
+            
+            amountInput.value = price.toFixed(2);
+            totalAmountInput.value = total.toFixed(2);
+            
+            // Update summary
+            document.getElementById('summaryPrice').textContent = price.toFixed(2) + ' ر.س';
+            document.getElementById('summaryDiscount').textContent = discount.toFixed(2) + ' ر.س';
+            document.getElementById('summaryTotal').textContent = total.toFixed(2) + ' ر.س';
+        }
+    }
+
+    startDateInput.addEventListener('change', updateEndDate);
+    discountInput.addEventListener('change', updateAmounts);
+});
+</script>
+{% endblock %}

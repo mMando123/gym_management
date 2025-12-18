@@ -1,0 +1,185 @@
+{% load static %}
+<nav class="sidebar bg-dark d-flex flex-column" style="background-color: var(--sidebar-bg) !important; width: 260px; height: 100vh; position: sticky; top: 0;">
+    <!-- Logo Section -->
+    <div class="p-4 border-bottom border-secondary">
+        <div class="d-flex align-items-center gap-2">
+            <div class="bg-primary rounded-3 p-2" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-dumbbell text-white fs-5"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 text-white fw-bold">GymPro</h5>
+                <small class="text-muted">نظام الجيم</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Items -->
+    <ul class="nav flex-column flex-grow-1 pt-3 px-2">
+        <!-- Dashboard -->
+        <li class="nav-item">
+            <a class="nav-link text-white-50 {% if request.resolver_match.app_name == 'dashboard' %}active text-primary{% endif %}" href="{% url 'dashboard:index' %}">
+                <i class="fas fa-gauge-high"></i>
+                <span class="ms-2">لوحة التحكم</span>
+            </a>
+        </li>
+
+        <!-- Members -->
+        <li class="nav-item">
+            <a class="nav-link text-white-50 collapsed {% if 'members' in request.path %}active text-primary{% endif %}" 
+               data-bs-toggle="collapse" href="#membersMenu">
+                <i class="fas fa-users"></i>
+                <span class="ms-2">الأعضاء</span>
+                <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+            <div class="collapse {% if 'members' in request.path %}show{% endif %}" id="membersMenu">
+                <ul class="nav flex-column ps-4 mt-2">
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="{% url 'members:list' %}">
+                            جميع الأعضاء
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="{% url 'members:create' %}">
+                            إضافة عضو
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="#">
+                            بطاقات العضوية
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- Subscriptions -->
+        <li class="nav-item">
+            <a class="nav-link text-white-50 collapsed {% if 'subscriptions' in request.path %}active text-primary{% endif %}" 
+               data-bs-toggle="collapse" href="#subsMenu">
+                <i class="fas fa-credit-card"></i>
+                <span class="ms-2">الاشتراكات</span>
+                <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+            <div class="collapse {% if 'subscriptions' in request.path %}show{% endif %}" id="subsMenu">
+                <ul class="nav flex-column ps-4 mt-2">
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="{% url 'subscriptions:list' %}">
+                            الاشتراكات النشطة
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="#">
+                            المنتهية
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="{% url 'subscriptions:create' %}">
+                            تجديد اشتراك
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- Attendance -->
+        <li class="nav-item">
+            <a class="nav-link text-white-50 collapsed {% if 'attendance' in request.path %}active text-primary{% endif %}" 
+               data-bs-toggle="collapse" href="#attendanceMenu">
+                <i class="fas fa-clipboard-check"></i>
+                <span class="ms-2">الحضور</span>
+                <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+            <div class="collapse {% if 'attendance' in request.path %}show{% endif %}" id="attendanceMenu">
+                <ul class="nav flex-column ps-4 mt-2">
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="{% url 'attendance:checkin' %}">
+                            تسجيل حضور
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="#">
+                            سجل الحضور
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- Payments -->
+        <li class="nav-item">
+            <a class="nav-link text-white-50 collapsed {% if 'payments' in request.path %}active text-primary{% endif %}" 
+               data-bs-toggle="collapse" href="#paymentsMenu">
+                <i class="fas fa-money-bill"></i>
+                <span class="ms-2">المدفوعات</span>
+                <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+            <div class="collapse {% if 'payments' in request.path %}show{% endif %}" id="paymentsMenu">
+                <ul class="nav flex-column ps-4 mt-2">
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="{% url 'payments:list' %}">
+                            جميع المدفوعات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="{% url 'payments:create' %}">
+                            تسجيل دفعة
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- Trainers -->
+        <li class="nav-item">
+            <a class="nav-link text-white-50 {% if 'trainers' in request.path %}active text-primary{% endif %}" 
+               href="{% url 'trainers:list' %}">
+                <i class="fas fa-user-tie"></i>
+                <span class="ms-2">المدربين</span>
+            </a>
+        </li>
+
+        <!-- Reports -->
+        <li class="nav-item">
+            <a class="nav-link text-white-50 collapsed {% if 'reports' in request.path %}active text-primary{% endif %}" 
+               data-bs-toggle="collapse" href="#reportsMenu">
+                <i class="fas fa-chart-bar"></i>
+                <span class="ms-2">التقارير</span>
+                <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+            <div class="collapse {% if 'reports' in request.path %}show{% endif %}" id="reportsMenu">
+                <ul class="nav flex-column ps-4 mt-2">
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="#">
+                            تقرير مالي
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="#">
+                            تقرير الحضور
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="#">
+                            تقرير الأعضاء
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- Settings -->
+        <li class="nav-item">
+            <a class="nav-link text-white-50 {% if 'settings' in request.path %}active text-primary{% endif %}" 
+               href="#">
+                <i class="fas fa-cog"></i>
+                <span class="ms-2">الإعدادات</span>
+            </a>
+        </li>
+    </ul>
+
+    <!-- Footer -->
+    <div class="p-3 border-top border-secondary mt-auto">
+        <small class="text-muted d-block">النسخة 1.0</small>
+        <small class="text-muted">© 2025 GymPro</small>
+    </div>
+</nav>

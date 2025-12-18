@@ -1,0 +1,248 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}الفاتورة - GymPro{% endblock %}
+
+{% block extra_css %}
+<style>
+    @page {
+        size: A4;
+        margin: 1cm;
+    }
+    
+    @media print {
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    }
+    
+    .invoice-container {
+        max-width: 100%;
+        background: white;
+        padding: 2cm;
+    }
+    
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2cm;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 1cm;
+    }
+    
+    .invoice-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .invoice-number {
+        text-align: right;
+    }
+    
+    .invoice-number-label {
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .invoice-number-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #4F46E5;
+    }
+    
+    .invoice-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2cm;
+        margin-bottom: 2cm;
+    }
+    
+    .detail-section h6 {
+        font-weight: bold;
+        margin-bottom: 0.5cm;
+        color: #333;
+    }
+    
+    .detail-section p {
+        margin: 0.25cm 0;
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2cm;
+    }
+    
+    .invoice-table th {
+        background: #f0f0f0;
+        padding: 0.5cm;
+        text-align: right;
+        border-bottom: 2px solid #ddd;
+        font-weight: bold;
+    }
+    
+    .invoice-table td {
+        padding: 0.75cm 0.5cm;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .totals-section {
+        display: flex;
+        justify-content: flex-end;
+        gap: 2cm;
+        margin-bottom: 2cm;
+    }
+    
+    .totals-box {
+        min-width: 200px;
+        padding: 1cm;
+        background: #f9f9f9;
+        border-left: 4px solid #4F46E5;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5cm;
+        font-size: 13px;
+    }
+    
+    .total-row.final {
+        border-top: 1px solid #ddd;
+        padding-top: 0.5cm;
+        font-weight: bold;
+        font-size: 16px;
+        color: #4F46E5;
+    }
+    
+    .footer-note {
+        background: #f0f4f8;
+        padding: 1cm;
+        border-radius: 5px;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 1cm;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">فاتورة</h2>
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print ms-2"></i>طباعة
+        </button>
+    </div>
+
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div>
+                <div class="invoice-title">🏋️ نادي القوة الرياضي</div>
+                <p style="color: #666; font-size: 12px; margin: 0.25cm 0 0 0;">
+                    الرياض - السلام<br>
+                    📱 +966501234567<br>
+                    📧 info@gym.sa
+                </p>
+            </div>
+            <div class="invoice-number">
+                <div class="invoice-number-label">رقم الفاتورة</div>
+                <div class="invoice-number-value">INV-2025-{{ invoice.id|stringformat:"05d" }}</div>
+                <p style="font-size: 12px; color: #666; margin-top: 0.5cm;">
+                    التاريخ: {{ invoice.date|date:"Y-m-d" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Invoice Details -->
+        <div class="invoice-details">
+            <div class="detail-section">
+                <h6>من:</h6>
+                <p>نادي القوة الرياضي</p>
+                <p style="color: #999;">صالة رياضية متكاملة</p>
+            </div>
+            <div class="detail-section" style="text-align: left;">
+                <h6>إلى:</h6>
+                <p>{{ invoice.member.full_name }}</p>
+                <p>{{ invoice.member.phone }}</p>
+                <p>{{ invoice.member.address }}</p>
+            </div>
+        </div>
+
+        <!-- Invoice Items Table -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>الوصف</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td style="text-align: center;">{{ item.quantity }}</td>
+                    <td style="text-align: left;">{{ item.price }} ر.س</td>
+                    <td style="text-align: left;">{{ item.total }} ر.س</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals Section -->
+        <div class="totals-section">
+            <div class="totals-box">
+                <div class="total-row">
+                    <span>الإجمالي:</span>
+                    <span>{{ invoice.subtotal|default:"0" }} ر.س</span>
+                </div>
+                {% if invoice.discount %}
+                <div class="total-row">
+                    <span>الخصم:</span>
+                    <span>-{{ invoice.discount }} ر.س</span>
+                </div>
+                {% endif %}
+                {% if invoice.tax %}
+                <div class="total-row">
+                    <span>الضريبة (15%):</span>
+                    <span>{{ invoice.tax }} ر.س</span>
+                </div>
+                {% endif %}
+                <div class="total-row final">
+                    <span>الإجمالي النهائي:</span>
+                    <span>{{ invoice.total }} ر.س</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="footer-note">
+            <strong>طريقة الدفع:</strong> {{ invoice.payment_method }}<br>
+            <strong>الحالة:</strong> مدفوع ✓<br>
+            <strong>تاريخ الاستحقاق:</strong> {{ invoice.due_date|date:"Y-m-d" }}
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #ddd; padding-top: 1cm; text-align: center; color: #999; font-size: 11px;">
+            <p>شكراً لتعاملكم معنا!</p>
+            <p>جميع الحقوق محفوظة © 2025 نادي القوة الرياضي</p>
+        </div>
+    </div>
+</div>
+
+<script>
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        window.print();
+    }, 500);
+});
+</script>
+{% endblock %}

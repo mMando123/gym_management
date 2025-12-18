@@ -1,0 +1,18 @@
+# Production Requirements
+-r base.txt
+
+# Deployment
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Database
+psycopg2-binary==2.9.9
+
+# Monitoring
+sentry-sdk==1.38.0
+
+# Security
+django-cors-headers==4.3.1
+
+# Environment
+python-decouple==3.8

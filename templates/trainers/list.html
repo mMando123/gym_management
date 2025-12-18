@@ -1,0 +1,88 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}المدربين - GymPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">إدارة المدربين</h2>
+            <small class="text-muted">قائمة جميع المدربين في الجيم</small>
+        </div>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-plus ms-2"></i>إضافة مدرب
+        </a>
+    </div>
+
+    <!-- Trainers Grid -->
+    <div class="row g-4">
+        {% for trainer in trainers %}
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card h-100 text-center transition-all">
+                <!-- Trainer Image -->
+                <div style="height: 250px; overflow: hidden; background-color: #f0f4f8;">
+                    {% if trainer.image %}
+                        <img src="{{ trainer.image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ trainer.full_name }}">
+                    {% else %}
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-user" style="font-size: 4rem; color: #cbd5e1;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Trainer Info -->
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ trainer.full_name }}</h5>
+                    <p class="text-muted mb-1">{{ trainer.specialization }}</p>
+                    <p class="text-muted mb-3" style="font-size: 0.9rem;">{{ trainer.experience_years }} سنوات خبرة</p>
+
+                    <!-- Rating -->
+                    <div class="mb-3">
+                        <small class="text-warning">
+                            <i class="fas fa-star"></i>
+                            {{ trainer.rating|default:"4.8" }}
+                        </small>
+                    </div>
+
+                    <!-- Status Badge -->
+                    <p class="mb-3">
+                        {% if trainer.is_active %}
+                            <span class="badge bg-success">متاح</span>
+                        {% else %}
+                            <span class="badge bg-danger">غير متاح</span>
+                        {% endif %}
+                    </p>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'trainers:detail' trainer.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye ms-2"></i>عرض التفاصيل
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h5 class="mt-3">لا يوجد مدربين</h5>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+.transition-all:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+</style>
+{% endblock %}

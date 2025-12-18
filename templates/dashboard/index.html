@@ -1,0 +1,280 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}لوحة التحكم - GymPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Title -->
+    <div class="mb-4">
+        <h2 class="fw-bold">لوحة التحكم</h2>
+        <small class="text-muted">مرحباً بك في نظام إدارة الجيم</small>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <!-- Total Members -->
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card primary">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">{{ total_members }}</div>
+                        <div class="stat-label">إجمالي الأعضاء</div>
+                    </div>
+                    <i class="fas fa-users stat-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Subscriptions -->
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card secondary">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">{{ active_subscriptions }}</div>
+                        <div class="stat-label">الاشتراكات النشطة</div>
+                    </div>
+                    <i class="fas fa-credit-card stat-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today Attendance -->
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card success">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">{{ today_attendance }}</div>
+                        <div class="stat-label">الحضور اليوم</div>
+                    </div>
+                    <i class="fas fa-clipboard-check stat-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Revenue -->
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card warning">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">{{ monthly_revenue|default:"0" }}</div>
+                        <div class="stat-label">إيرادات الشهر</div>
+                    </div>
+                    <i class="fas fa-money-bill stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Revenue Chart -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line text-primary ms-2"></i>
+                        الإيرادات - آخر 6 أشهر
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Distribution -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-pie-chart text-secondary ms-2"></i>
+                        توزيع الاشتراكات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="subscriptionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="row g-4">
+        <!-- Recent Members -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-plus text-success ms-2"></i>
+                        آخر الأعضاء المسجلين
+                    </h5>
+                    <a href="{% url 'members:list' %}" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الهاتف</th>
+                                    <th>تاريخ التسجيل</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in recent_members %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ member.full_name }}</strong>
+                                    </td>
+                                    <td>{{ member.phone }}</td>
+                                    <td>{{ member.created_at|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <span class="badge status-active">نشط</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        لا توجد بيانات
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expiring Subscriptions -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-circle text-warning ms-2"></i>
+                        الاشتراكات المنتهية قريباً
+                    </h5>
+                    <a href="{% url 'subscriptions:list' %}" class="btn btn-sm btn-outline-warning">عرض الكل</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>العضو</th>
+                                    <th>الخطة</th>
+                                    <th>ينتهي في</th>
+                                    <th>أيام متبقية</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subscription in expiring_subscriptions %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ subscription.member.full_name }}</strong>
+                                    </td>
+                                    <td>{{ subscription.plan.name }}</td>
+                                    <td>{{ subscription.end_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        {% if subscription.days_remaining <= 3 %}
+                                            <span class="badge bg-danger">{{ subscription.days_remaining }} أيام</span>
+                                        {% elif subscription.days_remaining <= 7 %}
+                                            <span class="badge bg-warning">{{ subscription.days_remaining }} أيام</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ subscription.days_remaining }} أيام</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        لا توجد اشتراكات منتهية قريباً
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+// Revenue Chart
+const revenueCtx = document.getElementById('revenueChart');
+if (revenueCtx) {
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+            datasets: [{
+                label: 'الإيرادات (ريال)',
+                data: [10000, 12000, 11500, 15000, 18000, 20000],
+                borderColor: '#4F46E5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                tension: 0.4,
+                fill: true,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: { font: { family: "'Cairo', sans-serif" } }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString('ar-SA') + ' ر.س';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Subscription Distribution Chart
+const subscriptionCtx = document.getElementById('subscriptionChart');
+if (subscriptionCtx) {
+    new Chart(subscriptionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['شهري', 'ربع سنوي', 'سنوي'],
+            datasets: [{
+                data: [30, 40, 30],
+                backgroundColor: [
+                    '#4F46E5',
+                    '#0EA5E9',
+                    '#22C55E'
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { font: { family: "'Cairo', sans-serif" } }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
